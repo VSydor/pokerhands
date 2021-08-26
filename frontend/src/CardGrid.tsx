@@ -1,18 +1,48 @@
 import React, {useState} from "react"
 import {CardSet} from "./CardSet";
 
-type SelectedCardsMap = Record<string, boolean>;
+type SelectedCardsMap = Record<number, Record<string, boolean>>;
 
 export function CardGrid() {
 
     const [selectedCardsMap, setSelectedCards]: [SelectedCardsMap, React.Dispatch<React.SetStateAction<SelectedCardsMap>>] =
         useState({});
 
-    const handleChange = (cardSetCardId: string) => {
-        setSelectedCards((prevState) => ({
-            ...prevState,
-            [`${cardSetCardId}`]: !prevState[cardSetCardId]
-        }));
+    const handleChange = (setId: number, cardId: string) => {
+        setSelectedCards((prevState) => {
+            if (!prevState[setId]) {
+                return {
+                    ...prevState,
+                    [setId]: {
+                        [cardId]: true
+                    }
+                }
+            }
+
+            const entries = Object.entries(prevState[setId]);
+            const maxCardsSelected = entries.length > 1;
+
+            if (maxCardsSelected) {
+                return {
+                    ...prevState,
+                    [setId]: Object.fromEntries([
+                        ...entries.filter((_, i) => i !== 0),
+                        [
+                            cardId,
+                            !prevState[setId][cardId]
+                        ]
+                    ])
+                }
+            }
+
+            return {
+                ...prevState,
+                [setId]: {
+                    ...prevState[setId],
+                    [cardId]: !prevState[setId][cardId]
+                }
+            }
+        });
     };
 
     const [gridSize, setGridSize]: [number, React.Dispatch<React.SetStateAction<number>>] =
@@ -20,10 +50,12 @@ export function CardGrid() {
 
     const onSendData = () => {
         const strs = Object.entries(selectedCardsMap)
-            .filter(([_, isSelected]) => isSelected)
-            .reduce((acc: string[], [key, _]) => {
-                const [setId, cardId] = key.split("-");
-                acc.push(`Set ${setId}, cardId ${cardId}`);
+            .reduce((acc: string[], [setId, cardsIdxd]) => {
+                Object.entries(cardsIdxd).forEach(([cardId, isSelected]) => {
+                    if (isSelected) {
+                        acc.push(`Set ${setId}, cardId ${cardId}`);
+                    }
+                })
                 return acc;
             }, []);
         alert(strs.join("\n"));
@@ -44,7 +76,7 @@ export function CardGrid() {
                 {
                     Array.from({length: gridSize}).map((_, i) =>
                         <CardSet key={`card-set-${i}`} id={i}
-                                 selectedCardsMap={selectedCardsMap}
+                                 selectedCardsMap={selectedCardsMap[i]}
                                  onCardClick={handleChange}/>
                     )
                 }

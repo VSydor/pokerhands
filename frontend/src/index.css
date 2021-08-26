@@ -7,13 +7,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.side-switch-label {
-  cursor: pointer;
+.card-grid {
+  display: grid;
+  grid-auto-flow: row;
+  grid-gap: 20px;
+  grid-template-rows: 1fr;
+  grid-template-columns: 50% 50%;
+  padding: 10px;
 }
 
-.side-switch-label input {
-  margin: 0 5px 0 0;
-  cursor: pointer;
+.card-set {
+  border: 1px #f2eae3 solid;
 }
 
 .cards {
@@ -67,25 +71,3 @@ body {
   height: 85px;
 }
 
-.card-grid {
-  display: grid;
-  height: 400px;
-}
-
-.card-set {
-  /*display: flex;*/
-  /*flex-direction: row;*/
-  /*justify-content: center;*/
-  /*align-items: center;*/
-  border: 1px sandybrown solid;
-}
-
-/* 3 players: make the last one take two colums*/
-.card-set:nth-child(3):nth-last-child(1) {
-  grid-column:span 2;
-}
-
-/* 4 players: make the second in the second column */
-.card-set:nth-child(2):nth-last-child(3) {
-  grid-column:2;
-}
