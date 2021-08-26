@@ -4,10 +4,10 @@ import "./index.css"
 
 import {Card} from "./components/Card"
 
-const ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]
+const ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"].reverse();
 const suits = ["c", "d", "h", "s"]
 
-const mappedSuits = suits.map(suit => ranks.reverse().map(r => r + suit))
+const mappedSuits = suits.map(suit => ranks.map(r => r + suit))
 
 type SelectedCardsMap = Record<string, boolean>;
 

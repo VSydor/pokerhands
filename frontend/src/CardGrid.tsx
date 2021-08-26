@@ -68,7 +68,7 @@ export function CardGrid() {
                 <button onClick={onSendData} style={{margin: "10px"}}>Send</button>
                 <label>
                     Grid Size
-                    <input type="number" id="gridSize" style={{"marginLeft": "5px"}} value={gridSize}
+                    <input type="number" id="gridSize" style={{"marginLeft": "5px", "width": "40px"}} value={gridSize}
                            onInput={(e: any) => setGridSize(e.target.value)}/>
                 </label>
             </div>
