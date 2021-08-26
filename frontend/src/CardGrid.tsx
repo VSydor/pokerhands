@@ -2,10 +2,14 @@ import React, {useState} from "react"
 import {CardSet} from "./CardSet";
 
 type SelectedCardsMap = Record<number, Record<string, boolean>>;
+type ProcessCardResponseMap = Record<number, string>;
 
 export function CardGrid() {
 
     const [selectedCardsMap, setSelectedCards]: [SelectedCardsMap, React.Dispatch<React.SetStateAction<SelectedCardsMap>>] =
+        useState({});
+
+    const [processCardResponseMap, setProcessCardResponseMap]: [ProcessCardResponseMap, React.Dispatch<React.SetStateAction<ProcessCardResponseMap>>] =
         useState({});
 
     const handleChange = (setId: number, cardId: string) => {
@@ -48,24 +52,34 @@ export function CardGrid() {
     const [gridSize, setGridSize]: [number, React.Dispatch<React.SetStateAction<number>>] =
         useState(4);
 
-    const onSendData = () => {
-        const strs = Object.entries(selectedCardsMap)
-            .reduce((acc: string[], [setId, cardsIdxd]) => {
-                Object.entries(cardsIdxd).forEach(([cardId, isSelected]) => {
-                    if (isSelected) {
-                        acc.push(`Set ${setId}, cardId ${cardId}`);
-                    }
-                })
-                return acc;
-            }, []);
-        alert(strs.join("\n"));
-        setSelectedCards({});
+    const onSendData = (setId: number) => {
+        const selectedCards = Object.entries(selectedCardsMap[setId])
+            .filter(([_, isSelected]) => isSelected)
+            .map(([cardId, _]) => cardId);
+
+        postData("/cards", {selectedCards})
+            .then(resp => {
+                setProcessCardResponseMap(prevState => ({
+                    ...prevState,
+                    [setId]: JSON.stringify(resp)
+                }));
+            })
+            .catch(e => {
+                setProcessCardResponseMap(prevState => ({
+                    ...prevState,
+                    [setId]: JSON.stringify(e)
+                }))
+            });
+
+        setSelectedCards((prevState) => ({
+            ...prevState,
+            [setId]: {}
+        }));
     }
 
     return (
         <div>
             <div>
-                <button onClick={onSendData} style={{margin: "10px"}}>Send</button>
                 <label>
                     Grid Size
                     <input type="number" id="gridSize" style={{"marginLeft": "5px", "width": "40px"}} value={gridSize}
@@ -74,13 +88,34 @@ export function CardGrid() {
             </div>
             <div className="card-grid">
                 {
-                    Array.from({length: gridSize}).map((_, i) =>
-                        <CardSet key={`card-set-${i}`} id={i}
-                                 selectedCardsMap={selectedCardsMap[i]}
-                                 onCardClick={handleChange}/>
+                    Array.from({length: gridSize}).map((_, setId) =>
+                        <div key={`card-set-${setId}`}>
+                            <CardSet id={setId}
+                                     selectedCardsMap={selectedCardsMap[setId]}
+                                     onCardClick={handleChange}/>
+                            <button onClick={() => onSendData(setId)} style={{margin: "10px"}}>Send</button>
+                            <span>Response: {processCardResponseMap[setId]}</span>
+                        </div>
                     )
                 }
             </div>
         </div>
     )
+}
+
+async function postData(url = '', data = {}) {
+    const response = await fetch(url, {
+        method: 'POST',
+        cache: 'no-cache',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+
+    if (response.status !== 200) {
+        throw new Error(await response.text());
+    }
+
+    return response.json();
 }
